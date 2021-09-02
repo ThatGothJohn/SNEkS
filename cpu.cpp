@@ -44,8 +44,30 @@ namespace cpu {
             printf("reg %s: 0x%02X, perms: %i, Virt addr: 0x%02X\n", key.c_str(), val.data, val.permission, val.addr);
     }
 
-    bool Cpu::load_rom(char * rom, long int size) {
+    bool Cpu::load_rom(const char* filename) {
+        FILE* rom_file;
+        rom_file = fopen(filename, "r");
+        if (!rom_file) {
+            printf("\nRom File not found or is busy!\n");
+            return false;
+        }
+        fseek (rom_file, 0, SEEK_END);
+        off_t sizeOfFile = ftell(rom_file);
+        if (fseek(rom_file, 0, SEEK_SET) != 0 || sizeOfFile == 0) {
+            printf("\nfseek failed!\n");
+            return false;
+        }
+        unsigned char* rom_contents = (unsigned char*)malloc(sizeOfFile / 8 + 1);
 
-        return this->m_memory_controller.load_rom_into_virtual_memory(rom, size);
+        if (rom_contents == NULL){
+            printf("\nFailed to allocate memory for the Rom file!\n");
+            return false;
+        }
+        if (fread(rom_contents, 1, sizeOfFile / 8, rom_file) == 0){
+            printf("\nFailed to read the Rom file! file size: %li, filename : %s\n", sizeOfFile, filename);
+            return false;
+        }
+        this->m_memory_controller.load_rom_into_virtual_memory(rom_contents, sizeOfFile / 8);
+        return true;
     }
 }

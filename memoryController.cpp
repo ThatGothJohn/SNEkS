@@ -317,11 +317,48 @@ namespace memory {
         return {};
     }
 
-    bool memoryController::load_rom_into_virtual_memory(char * rom, long int size) {
-        printf("first 3 chars in rom: %c%c%c\t size: %li\n", rom[0], rom[1], rom[2], size);
-        for (int x = 0; x < size/8; x++){
-            this->m_virtual_memory[x] = (std::byte)rom[x];
-        }
+    bool memoryController::load_rom_into_virtual_memory(unsigned char * rom, long int size) {
+        this->handle_nes20_file(rom, size);
+//        for (int x = 0; x < size/8; x++){
+//            this->m_virtual_memory[0x8000+x] = (std::byte)rom[x];
+//        }
         return true;
+    }
+
+    memoryController::nes20 memoryController::handle_nes20_file(unsigned char * rom, long size) {
+        if (rom[0]!='N' || rom[1]!='E' || rom[2]!='S' || rom[3]!=0x1A) //check if not ines file
+            return {};
+        if (rom[7]&0x0c != 0x08) //check if not nes 2.0 file
+            return {};
+        //it is a nes2.0 file :)
+        nes20 rom_data;
+        rom_data.full_rom = rom;
+        rom_data.rom_size = size;
+        rom_data.prg_rom_sizeLSB4 = rom[4];
+        rom_data.chr_rom_sizeLSB5 = rom[5];
+        rom_data.flags6 = rom[6];
+        rom_data.flags7 = rom[7];
+        rom_data.mappers8 = rom[8];
+        rom_data.prg_chr_rom_sizeMSB9 = rom[9];
+        rom_data.prg_ram_EEPROM_size10 = rom[10];
+        rom_data.chr_ram_size11 = rom[11];
+        rom_data.cpu_ppu_timing12 = rom[12];
+        rom_data.system_type13 = rom[13];
+        rom_data.misc_roms_present14 = rom[14];
+        rom_data.default_expansion_device15 = rom[15];
+
+        rom_data.trainer_size = 0;
+        if (rom_data.flags6 & 0x02){
+            rom_data.trainer = rom + 16;
+            rom_data.trainer_size = 512;
+        }
+        bool is_exponent_multiplier = rom_data.prg_chr_rom_sizeMSB9 & 0x0F == 0xF;
+        if (is_exponent_multiplier){
+            int exponent = rom_data.prg_rom_sizeLSB4 >> 2 << 2;
+            int multiplier = rom_data.prg_rom_sizeLSB4 & 0x03;
+            rom_data.prg_rom_size = (2^exponent) * (multiplier*2+1);
+        }
+
+        return rom_data;
     }
 }

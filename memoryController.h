@@ -13,6 +13,38 @@ namespace memory {
 
     class memoryController {
     private:
+        //https://wiki.nesdev.com/w/index.php/NES_2.0
+        struct nes20 {
+            off_t Header_offset = 0;
+            unsigned char prg_rom_sizeLSB4;
+            unsigned char chr_rom_sizeLSB5;
+            unsigned char flags6;
+            unsigned char flags7;
+            unsigned char mappers8;
+            unsigned char prg_chr_rom_sizeMSB9;
+            unsigned char prg_ram_EEPROM_size10;
+            unsigned char chr_ram_size11;
+            unsigned char cpu_ppu_timing12;
+            unsigned char system_type13;
+            unsigned char misc_roms_present14;
+            unsigned char default_expansion_device15;
+
+            unsigned char *trainer;
+            size_t trainer_size;
+
+            size_t prg_rom_size;
+            unsigned char *prg_rom;
+
+            size_t chr_rom_size;
+            unsigned char *chr_rom;
+
+            size_t misc_rom_size;
+            unsigned char *misc_rom;
+
+            size_t rom_size;
+            unsigned char *full_rom;
+        };
+
         struct reg{
             int addr;
             int data;
@@ -91,8 +123,9 @@ namespace memory {
 
         std::pair<std::string, reg> Register_from_address (int addr);
 
-        bool load_rom_into_virtual_memory(char*, long int);
+        bool load_rom_into_virtual_memory(unsigned char*, long int);
 
+        nes20 handle_nes20_file(unsigned char*, long);
     };
 }
 #endif //SNEKS_MEMORYCONTROLLER_H
