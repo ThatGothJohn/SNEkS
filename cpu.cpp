@@ -57,17 +57,17 @@ namespace cpu {
             printf("\nfseek failed!\n");
             return false;
         }
-        unsigned char* rom_contents = (unsigned char*)malloc(sizeOfFile / 8 + 1);
+        unsigned char* rom_contents = (unsigned char*)malloc(sizeOfFile + 1);
 
         if (rom_contents == NULL){
             printf("\nFailed to allocate memory for the Rom file!\n");
             return false;
         }
-        if (fread(rom_contents, 1, sizeOfFile / 8, rom_file) == 0){
+        if (fread(rom_contents, 1, sizeOfFile, rom_file) == 0){
             printf("\nFailed to read the Rom file! file size: %li, filename : %s\n", sizeOfFile, filename);
             return false;
         }
-        this->m_memory_controller.load_rom_into_virtual_memory(rom_contents, sizeOfFile / 8);
+        this->m_memory_controller.load_rom_into_virtual_memory(rom_contents, sizeOfFile);
         return true;
     }
 }

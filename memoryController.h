@@ -41,7 +41,7 @@ namespace memory {
             size_t misc_rom_size;
             unsigned char *misc_rom;
 
-            size_t rom_size;
+            long rom_size;
             unsigned char *full_rom;
         };
 
