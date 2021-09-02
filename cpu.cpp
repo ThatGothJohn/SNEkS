@@ -17,9 +17,7 @@ namespace cpu {
     Cpu::~Cpu() {
         this->m_memory_controller = {};
     }
-    void Cpu::init() {
 
-    }
     void Cpu::log_stats() {
         std::printf("Virtual Memory:\n");
         auto virtual_mem = this->m_memory_controller.VirtualMemory();
@@ -31,18 +29,23 @@ namespace cpu {
                 std::printf("\n");
             std::printf("%02X", virtual_mem[x]);
         }
-        std::printf("PPU Memory:\n");
+        std::printf("\nPPU Memory:\n");
         auto PPU_ram = this->m_memory_controller.PPU_Ram();
 
-        for (int x = 0x0000; x < 0x10000; x++) {
+        for (int x = 0x0000; x < 64 * 1024; x++) {
             if (x % 4 == 0 && x != 0)
                 std::printf(" ");
             if (x % 64*8 == 0 && x != 0)
                 std::printf("\n");
-            std::printf("%02X", virtual_mem[x]);
+            std::printf("%02X", PPU_ram[x]);
         }
         std::printf("\nRegisters:\n");
         for(auto const& [key, val] : this->m_memory_controller.Registers())
             printf("reg %s: 0x%02X, perms: %i, Virt addr: 0x%02X\n", key.c_str(), val.data, val.permission, val.addr);
+    }
+
+    bool Cpu::load_rom(char * rom, long int size) {
+
+        return this->m_memory_controller.load_rom_into_virtual_memory(rom, size);
     }
 }

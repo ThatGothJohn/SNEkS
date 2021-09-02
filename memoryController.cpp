@@ -8,6 +8,7 @@
 namespace memory {
     memoryController::memoryController(){
         this->init_ram();
+        this->init_PPU_ram();
         this->init_data_bus();
         this->init_A_bus();
         this->init_B_bus();
@@ -291,11 +292,7 @@ namespace memory {
     }
 
     std::byte memoryController::get_byte(int addr) const{
-        //memory architecture from http://graphics.stanford.edu/~ianbuck/proj/Nintendo/node6.html
-
-        if (addr < 0x0800) //internal Ram
-            return (const std::byte)0;
-
+        return {};
     }
 
     const std::map<std::string, memoryController::reg> memoryController::Registers() const {
@@ -318,5 +315,13 @@ namespace memory {
             }
         }
         return {};
+    }
+
+    bool memoryController::load_rom_into_virtual_memory(char * rom, long int size) {
+        printf("first 3 chars in rom: %c%c%c\t size: %li\n", rom[0], rom[1], rom[2], size);
+        for (int x = 0; x < size/8; x++){
+            this->m_virtual_memory[x] = (std::byte)rom[x];
+        }
+        return true;
     }
 }

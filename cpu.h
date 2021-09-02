@@ -31,7 +31,7 @@ namespace cpu {
     public:
         Cpu();
         ~Cpu();
-        void init();
+        bool load_rom(char*, long int);
         void log_stats();
     };
 

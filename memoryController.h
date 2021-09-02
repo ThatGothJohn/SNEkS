@@ -91,6 +91,8 @@ namespace memory {
 
         std::pair<std::string, reg> Register_from_address (int addr);
 
+        bool load_rom_into_virtual_memory(char*, long int);
+
     };
 }
 #endif //SNEKS_MEMORYCONTROLLER_H
