@@ -15,11 +15,6 @@ namespace cpu {
 //rom loading
 //boot loader
     class Cpu {
-    protected:
-        ~Cpu();
-
-
-
     private:
 
 
@@ -35,6 +30,7 @@ namespace cpu {
 
     public:
         Cpu();
+        ~Cpu();
         void init();
         void log_stats();
     };

@@ -63,6 +63,8 @@ namespace memory {
 
         void init_data_bus();
 
+        void init_PPU_ram();
+
         void setup_virtual_memory();
 
         bool write_byte(std::byte *mem, int addr, std::byte data);
@@ -82,6 +84,8 @@ namespace memory {
         std::byte *DataBus() const;
 
         const std::map<std::string, reg> Registers() const;
+
+        std::byte* PPU_Ram() const;
 
         std::byte *VirtualMemory() const;
 

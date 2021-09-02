@@ -21,8 +21,18 @@ namespace cpu {
 
     }
     void Cpu::log_stats() {
-        std::printf("Ram:\n");
+        std::printf("Virtual Memory:\n");
         auto virtual_mem = this->m_memory_controller.VirtualMemory();
+
+        for (int x = 0x0000; x < 0x10000; x++) {
+            if (x % 4 == 0 && x != 0)
+                std::printf(" ");
+            if (x % 64*8 == 0 && x != 0)
+                std::printf("\n");
+            std::printf("%02X", virtual_mem[x]);
+        }
+        std::printf("PPU Memory:\n");
+        auto PPU_ram = this->m_memory_controller.PPU_Ram();
 
         for (int x = 0x0000; x < 0x10000; x++) {
             if (x % 4 == 0 && x != 0)

@@ -243,6 +243,10 @@ namespace memory {
         this->m_data_bus = new std::byte[1]; //8-bit
     }
 
+    void memoryController::init_PPU_ram(){
+        this->m_PPU_ram = new std::byte[64 * 1024];
+    };
+
     void memoryController::setup_virtual_memory() { //http://graphics.stanford.edu/~ianbuck/proj/Nintendo/node6.html
         this->m_virtual_memory = new std::byte[0x10000];
         for (int x = 0x0000; x < 0x0800; x++)
@@ -296,6 +300,10 @@ namespace memory {
 
     const std::map<std::string, memoryController::reg> memoryController::Registers() const {
         return this->m_registers;
+    }
+
+    std::byte * memoryController::PPU_Ram() const {
+        return this->m_PPU_ram;
     }
 
     std::byte *memoryController::VirtualMemory() const {
