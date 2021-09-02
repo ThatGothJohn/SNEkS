@@ -11,7 +11,9 @@
 
 namespace cpu {
 
-
+//TODO instruction handling
+//rom loading
+//boot loader
     class Cpu {
     protected:
         ~Cpu();

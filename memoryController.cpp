@@ -29,10 +29,6 @@ namespace memory {
         return m_data_bus;
     }
 
-    std::byte *memoryController::Ram() const {
-        return m_ram;
-    }
-
     void memoryController::init_registers() {
         //names from https://wiki.superfamicom.org/registers
         this->m_registers = {
@@ -56,6 +52,9 @@ namespace memory {
                 {"RDIO", reg(0x4213, 0x00)},                                    //IO Port Read
                 {"RDDIVL", reg(0x4214, 0x00)},                                  //divide result low
                 {"RDDIVH", reg(0x4215, 0x00)},                                  //divide result high
+                {"RDMPYL", reg(0x4216, 0x00)},                                  //multiply result low
+                {"RDMPYH", reg(0x4217, 0x00)},                                  //multiply result high
+                {"RDDIVH", reg(0x4215, 0x00)},
         };
     }
 
@@ -118,11 +117,15 @@ namespace memory {
         return write_bytes(mem, start_addr, str_data, len);
     }
 
-    std::byte *memoryController::get_byte(int addr) {
+    std::byte memoryController::get_byte(int addr) const{
         //memory architecture from http://graphics.stanford.edu/~ianbuck/proj/Nintendo/node6.html
 
         if (addr < 0x0800) //internal Ram
-            return 0;
+            return (const std::byte)0;
 
+    }
+
+    const std::map<std::string, memoryController::reg> memoryController::Registers() const {
+        return this->m_registers;
     };
 }

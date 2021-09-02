@@ -12,7 +12,7 @@
 namespace memory {
 
     class memoryController {
-    public:
+    private:
         struct reg{
             int addr;
             int data;
@@ -27,10 +27,6 @@ namespace memory {
             reg(int reg_addr, int reg_data, access perms)
                     : addr(reg_addr), data(reg_data), permission(perms){}
         };
-
-        memoryController();
-
-        ~memoryController();
 
         //         24-bit
         int m_A_bus_len = 3;
@@ -47,6 +43,10 @@ namespace memory {
         std::map<std::string, reg> m_registers;
 
         std::byte* m_virtual_memory;
+    public:
+        memoryController();
+
+        ~memoryController();
 
         void init_registers();
 
@@ -68,7 +68,7 @@ namespace memory {
 
         bool write_string(std::byte *mem, int start_addr, std::string data);
 
-        std::byte *get_byte(int addr);
+        std::byte get_byte(int addr) const;
 
         std::byte *ABus() const;
 
@@ -76,7 +76,7 @@ namespace memory {
 
         std::byte *DataBus() const;
 
-        std::byte *Ram() const;
+        const std::map<std::string, reg> Registers() const;
     };
 }
 #endif //SNEKS_MEMORYCONTROLLER_H

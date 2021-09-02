@@ -31,7 +31,7 @@ namespace cpu {
             std::printf("%02X", ram_cached[x]);
         }
         std::printf("\nRegisters:\n");
-        for(auto const& [key, val] : this->m_memory_controller.m_registers)
+        for(auto const& [key, val] : this->m_memory_controller.Registers())
             printf("reg %s: %02X\n", key.c_str(), val.data);
     }
 }
