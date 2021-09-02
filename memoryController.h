@@ -17,8 +17,10 @@ namespace memory {
             int addr;
             int data;
             enum access{
-                read,
-                write,
+                read=1,
+                write=2,
+                double_byte_write=4,
+                word=8,
             } permission;
 
             reg() : addr(0), data(0), permission(access::read){}
@@ -33,6 +35,7 @@ namespace memory {
         std::byte *m_A_bus;
         //         8-bit
         int m_B_bus_len = 1;
+
         std::byte *m_B_bus;
         //         8-bit
         int m_data_bus_len = 1;
@@ -41,6 +44,8 @@ namespace memory {
         std::byte *m_ram;
 
         std::map<std::string, reg> m_registers;
+
+        std::byte *m_PPU_ram;
 
         std::byte* m_virtual_memory;
     public:
@@ -77,6 +82,11 @@ namespace memory {
         std::byte *DataBus() const;
 
         const std::map<std::string, reg> Registers() const;
+
+        std::byte *VirtualMemory() const;
+
+        std::pair<std::string, reg> Register_from_address (int addr);
+
     };
 }
 #endif //SNEKS_MEMORYCONTROLLER_H
