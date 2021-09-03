@@ -230,7 +230,7 @@ namespace memory {
     }
 
     void memoryController::init_ram() {
-        this->m_ram = new std::byte[128 * 1024];
+
     }
 
     void memoryController::init_A_bus() {
@@ -246,27 +246,11 @@ namespace memory {
     }
 
     void memoryController::init_PPU_ram(){
-        this->m_PPU_ram = new std::byte[64 * 1024];
+
     };
 
-    void memoryController::setup_virtual_memory() { //http://graphics.stanford.edu/~ianbuck/proj/Nintendo/node6.html
-        this->m_virtual_memory = new std::byte[0x10000];
-        for (int x = 0x0000; x < 0x0800; x++)
-            this->m_virtual_memory[x] = m_ram[x];
-        for (int x = 0x0000; x < 0x0800; x++)
-            this->m_virtual_memory[x+0x0800] = m_ram[x];
-        for (int x = 0x0000; x < 0x0800; x++)
-            this->m_virtual_memory[x+0x1000] = m_ram[x];
-        for (int x = 0x0000; x < 0x0800; x++)
-            this->m_virtual_memory[x+0x1800] = m_ram[x];
-        for (auto const& [key, val] : this->m_registers)
-            this->m_virtual_memory[val.addr] = (std::byte)val.data;
-        for (int x = 0x0000; x < 0x1000; x++) //placeholder for expansion modules
-            this->m_virtual_memory[0x5000+x] = (std::byte)0x00;
-        for (int x = 0x0000; x < 0x2000; x++) //placeholder for battery backed ram
-            this->m_virtual_memory[0x6000 + x] = (std::byte)0x00;
-        for (int x = 0x0000; x < 0x8000; x++) //placeholder for rom
-            this->m_virtual_memory[0x8000+x] = (std::byte)0x00;
+    void memoryController::setup_virtual_memory() { //http://www.emulatronia.com/doctec/consolas/snes/SNESMem.txt
+
     }
 
     bool memoryController::write_byte(std::byte *mem, int addr, std::byte data) {
@@ -315,7 +299,13 @@ namespace memory {
     }
 
     bool memoryController::load_rom_into_virtual_memory(unsigned char * rom, long int size) {
-
+        if (size == 0x200200){
+            printf("Headered!!!");
+        } else if (size == 0x200000) {
+            printf("Not Headered!!!");
+        } else {
+            printf("Uh-oh, rom size: %li", size);
+        }
         return true;
     }
 

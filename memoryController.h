@@ -14,6 +14,18 @@ namespace memory {
     class memoryController {
     private:
 
+        struct snes_header {
+            char     name[21];
+            uint8_t  map_mode;   // xxAAxxxB
+            uint8_t  rom_type;
+            uint8_t  rom_size;   // 09,0a,0b,0c,0d [2048^val]
+            uint8_t  sram_size;
+            uint8_t  dest_code;
+            uint8_t  fixed;
+            uint8_t  version;
+            uint16_t cmc_check;
+            uint16_t cksum;
+        };
 
         struct reg{
             int addr;

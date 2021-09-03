@@ -6,8 +6,8 @@
 int main(int argc, char* argv[]) {
     std::string rom_name;
     if (argc < 2) {
-        rom_name = "../roms/test.nes";
-//        printf("\nExpected SNES rom filename as argument\n");
+        rom_name = "../roms/test.smc";
+//        printf("\nExpected SNES rom filename as argument (eg .smc or .sfc)\n");
 //        throw std::invalid_argument("Rom File not provided!");
     } else {
         rom_name = argv[1];
@@ -19,7 +19,7 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    main_cpu->log_stats();
+    //main_cpu->log_stats();
 
 
     delete main_cpu;
