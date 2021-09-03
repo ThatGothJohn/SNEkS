@@ -44,7 +44,8 @@ namespace cpu {
         };
 
         //instructions and friendly names from https://wiki.superfamicom.org/65816-reference
-        std::map<char, instruction> instructions = { //can be referenced by this->instructions[0xXX] and ran with this->instructions[0xXX].callback();
+        std::map<char, instruction> instructions = {
+                //can be referenced by this->instructions[0xXX] and ran with this->instructions[0xXX].callback(); Hopefully making this easy when we start running code from vmem
                 {0x61, {"ADC", "Add with carry (DP indexed indirect, X)", 2, 6, []{ printf("0x61 not implemented;\n"); return false; }}},
                 {0x63, {"ADC", "Add with carry (Stack relative)", 2, 4, []{ printf("0x63 not implemented;\n"); return false; }}},
                 {0x65, {"ADC", "Add with carry (Direct Page)", 2, 3, []{ printf("0x65 not implemented;\n"); return false; }}},
@@ -56,6 +57,17 @@ namespace cpu {
                 {0x72, {"ADC", "Add with carry (DP Indirect)", 2, 5, []{ printf("0x72 not implemented;\n"); return false; }}},
                 {0x73, {"ADC", "Add with carry (SR Indirect Indexed,Y)", 2, 7, []{ printf("0x73 not implemented;\n"); return false; }}},
                 {0x75, {"ADC", "Add with carry (DP Indexed,X)", 2, 4, []{ printf("0x75 not implemented;\n"); return false; }}},
+                {0x77, {"ADC", "Add with carry (DP Indirect Long Indexed,Y)", 2, 6, []{ printf("0x77 not implemented;\n"); return false; }}},
+                {0x79, {"ADC", "Add with carry (Absolute Indexed,Y)", 3, 4, []{ printf("0x79 not implemented;\n"); return false; }}},
+                {0x7D, {"ADC", "Add with carry (Absolute Indexed,X)", 3, 4, []{ printf("0x7D not implemented;\n"); return false; }}},
+                {0x7F, {"ADC", "Add with carry (Absolute Long Indexed,X)", 4, 5, []{ printf("0x7F not implemented;\n"); return false; }}},
+
+                {0x21, {"AND", "AND Accumulator with Memory (DP Indexed Indirect,X)", 2, 6, []{ printf("0x21 not implemented;\n"); return false; }}},
+                {0x23, {"AND", "AND Accumulator with Memory (Stack Relative)", 2, 4, []{ printf("0x23 not implemented;\n"); return false; }}},
+                {0x25, {"AND", "AND Accumulator with Memory (Direct Page)", 2, 3, []{ printf("0x25 not implemented;\n"); return false; }}},
+                {0x27, {"AND", "AND Accumulator with Memory (DP Indirect Long)", 2, 6, []{ printf("0x27 not implemented;\n"); return false; }}},
+                {0x29, {"AND", "AND Accumulator with Memory (Immediate)", 2, 2, []{ printf("0x29 not implemented;\n"); return false; }}},
+                {0x2D, {"AND", "AND Accumulator with Memory (Absolute)", 3, 4, []{ printf("0x2D not implemented;\n"); return false; }}},
         };
 
         long m_clock_rate = 21477270; //Hertz
