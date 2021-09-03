@@ -3,8 +3,8 @@
 //
 #include "cpu.h"
 
-#include <iostream>
-#include "cstring"
+#include <cstdio>
+#include <cstdlib>
 
 
 namespace cpu {
@@ -18,6 +18,8 @@ namespace cpu {
         this->m_memory_controller = {};
     }
 
+#pragma clang diagnostic push
+#pragma ide diagnostic ignored "UnusedLocalVariable"
     void Cpu::log_stats() {
         std::printf("Virtual Memory:\n");
         auto virtual_mem = this->m_memory_controller.VirtualMemory();
@@ -27,7 +29,7 @@ namespace cpu {
                 std::printf(" ");
             if (x % 64*8 == 0 && x != 0)
                 std::printf("\n");
-            std::printf("%02X", virtual_mem[x]);
+            std::printf("%02hhX", virtual_mem[x]);
         }
         std::printf("\nPPU Memory:\n");
         auto PPU_ram = this->m_memory_controller.PPU_Ram();
@@ -37,13 +39,14 @@ namespace cpu {
                 std::printf(" ");
             if (x % 64*8 == 0 && x != 0)
                 std::printf("\n");
-            std::printf("%02X", PPU_ram[x]);
+            std::printf("%02hhX", PPU_ram[x]);
         }
         std::printf("\nRegisters:\n");
         for(auto const& [key, val] : this->m_memory_controller.Registers())
             printf("reg %s: 0x%02X, perms: %i, Virt addr: 0x%02X\n", key.c_str(), val.data, val.permission, val.addr);
 
     }
+#pragma clang diagnostic pop
 
     bool Cpu::load_rom(const char* filename) {
         FILE* rom_file;
@@ -58,9 +61,9 @@ namespace cpu {
             printf("\nfseek failed!\n");
             return false;
         }
-        unsigned char* rom_contents = (unsigned char*)malloc(sizeOfFile + 1);
+        auto* rom_contents = (unsigned char*)malloc(sizeOfFile + 1);
 
-        if (rom_contents == NULL){
+        if (rom_contents == nullptr){
             printf("\nFailed to allocate memory for the Rom file!\n");
             return false;
         }
@@ -68,11 +71,19 @@ namespace cpu {
             printf("\nFailed to read the Rom file! file size: %li, filename : %s\n", sizeOfFile, filename);
             return false;
         }
-        this->m_memory_controller.load_rom_into_virtual_memory(rom_contents, sizeOfFile);
+        if (!this->m_memory_controller.load_rom_into_virtual_memory(rom_contents, sizeOfFile)){
+            printf("Rom name: %s\t Rom size: %li", filename, sizeOfFile);
+            return false;
+        }
         return true;
     }
 
     void Cpu::init_instructions() {
         this->instructions[0x61].callback = [this]{ printf("test: %s\n", this->instructions[0x61].friendly_name.c_str()); return true;}; //todo: replace with actual implementations of instructions
+    }
+
+    error_t run(){
+
+        return 0;
     }
 }

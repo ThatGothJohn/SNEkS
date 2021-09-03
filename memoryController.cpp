@@ -16,7 +16,7 @@ namespace memory {
         this->setup_virtual_memory();
     }
 
-    memoryController::~memoryController() {}
+    memoryController::~memoryController() = default;
 
 
 
@@ -288,12 +288,8 @@ namespace memory {
 
     bool memoryController::write_string(std::byte *mem, int start_addr, std::string data) {
         int len = data.length();
-        std::byte *str_data = (std::byte *) data.c_str();
+        auto *str_data = (std::byte *) data.c_str();
         return write_bytes(mem, start_addr, str_data, len);
-    }
-
-    std::byte memoryController::get_byte(int addr) const{
-        return {};
     }
 
     const std::map<std::string, memoryController::reg> memoryController::Registers() const {
@@ -319,104 +315,9 @@ namespace memory {
     }
 
     bool memoryController::load_rom_into_virtual_memory(unsigned char * rom, long int size) {
-        memoryController::nes20 rom_parsed = this->handle_nes20_file(rom, size);
-        if (rom_parsed.trainer_size > 0) {
-            for (int x = 0; x < 512; x++)
-                this->m_virtual_memory[0x7000 + x] = (std::byte) rom_parsed.trainer[x];
-        }
 
-        //Vs. Raid on bungeling Bay, Vs. Hardware type #6
-        for (int x = 0; x < 32 * 1024; x++){
-            this->m_virtual_memory[0x8000 + x] = (std::byte)rom_parsed.prg_rom[x];
-        }
-//        for (int x = 0; x < 8 * 1024; x++){
-//            if (rom_parsed.prg_rom_size - (x+32*1024) >= 0) {
-//                this->m_virtual_memory[0xE000 + x] = (std::byte) rom_parsed.prg_rom[x + 32 * 1024];
-//            } else {
-//                printf("\n\n\nUH oh\n\n");
-//            }
-//        }
-
-        for (int x = 0; x < 8 * 1024; x++){
-            if (rom_parsed.chr_rom_size - (x) >= 0) {
-                this->m_PPU_ram[x] = (std::byte)rom_parsed.chr_rom[x];
-            } else {
-                printf("\n\n\nUH oh\n\n");
-            }
-        }
         return true;
     }
 
-    memoryController::nes20 memoryController::handle_nes20_file(unsigned char * rom, long size) {
-        if (rom[0]!='N' || rom[1]!='E' || rom[2]!='S' || rom[3]!=0x1A) //check if not ines file
-            return {};
-        if (rom[7]&0x0c != 0x08) //check if not nes 2.0 file
-            return {};
-        //it is a nes2.0 file :)
-        nes20 rom_data;
-        rom_data.full_rom = rom;
-        rom_data.rom_size = size;
-        rom_data.prg_rom_sizeLSB4 = rom[4];
-        rom_data.chr_rom_sizeLSB5 = rom[5];
-        rom_data.flags6 = rom[6];
-        rom_data.flags7 = rom[7];
-        rom_data.mappers8 = rom[8];
-        rom_data.prg_chr_rom_sizeMSB9 = rom[9];
-        rom_data.prg_ram_EEPROM_size10 = rom[10];
-        rom_data.chr_ram_size11 = rom[11];
-        rom_data.cpu_ppu_timing12 = rom[12];
-        rom_data.system_type13 = rom[13];
-        rom_data.misc_roms_present14 = rom[14];
-        rom_data.default_expansion_device15 = rom[15];
 
-        rom_data.trainer_size = 0;
-        if (rom_data.flags6 & 0x02){
-            rom_data.trainer = rom + 16;
-            rom_data.trainer_size = 512;
-        }
-
-
-        bool is_exponent_multiplier = rom_data.prg_chr_rom_sizeMSB9 & 0x0F == 0x0F;
-        if (is_exponent_multiplier){
-            int exponent = rom_data.prg_rom_sizeLSB4 >> 2 << 2;
-            int multiplier = rom_data.prg_rom_sizeLSB4 & 0x03;
-            rom_data.prg_rom_size = (2^exponent) * (multiplier*2+1);
-            printf("\n\nexponent multiplier program rom size: %i\n\n", rom_data.prg_rom_size);
-        } else {
-            int a = rom_data.prg_chr_rom_sizeMSB9 & 0x0F;
-            int b = rom_data.prg_rom_sizeLSB4;
-            int c = (a << 8) | b;
-            rom_data.prg_rom_size = c * 16 * 1024;
-            //printf("\n\nsimple program rom size: %i\n\n", rom_data.prg_rom_size);
-        }
-        rom_data.prg_rom = rom + 16 + rom_data.trainer_size;
-
-
-        is_exponent_multiplier = rom_data.prg_chr_rom_sizeMSB9 & 0xF0 == 0xF0;
-        if (is_exponent_multiplier){
-            int exponent = rom_data.chr_rom_sizeLSB5 >> 2 << 2;
-            int multiplier = rom_data.chr_rom_sizeLSB5 & 0x03;
-            rom_data.chr_rom_size = (2^exponent) * (multiplier*2+1);
-            printf("\n\nexponent multiplier character rom size: %i\n\n", rom_data.chr_rom_size);
-        } else {
-            int a = rom_data.prg_chr_rom_sizeMSB9 & 0xF0;
-            int b = rom_data.chr_rom_sizeLSB5;
-            int c = (a << 4) | b;
-            rom_data.chr_rom_size = c * 8 * 1024;
-            //printf("\n\nsimple character rom size: %i\n\n", rom_data.chr_rom_size);
-        }
-        rom_data.chr_rom = rom + 16 + rom_data.trainer_size + rom_data.prg_rom_size;
-
-        long misc_size = rom_data.rom_size - (16+rom_data.trainer_size+rom_data.prg_rom_size+rom_data.chr_rom_size);
-        rom_data.misc_rom_size = misc_size;
-        if (misc_size < 0){
-            printf("\nH %li\t rom size : %i\t %i %i %i\n", misc_size, rom_data.rom_size, rom_data.trainer_size,rom_data.prg_rom_size, rom_data.chr_rom_size);
-            return {};
-        } else if (misc_size == 0){
-            rom_data.misc_rom = {};
-        }
-        rom_data.misc_rom = rom + 16+rom_data.trainer_size+rom_data.prg_rom_size+rom_data.chr_rom_size;
-
-        return rom_data;
-    }
 }

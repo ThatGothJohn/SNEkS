@@ -30,17 +30,17 @@ namespace cpu {
         struct internal_register {
             std::string mnemonic;   //what the reg is usually referred to
             std::string friendly_name;  //a nicer name
-            char data;  //the actual registers storage
+            char16_t data;  //the actual registers storage
         };
 
         std::map<std::string, internal_register> cpu_registers = {
-                {"A", {"A", "Accumulator", (char) 0x00}},
-                {"X", {"X", "Index X", (char) 0x00}},
-                {"Y", {"Y", "Index Y", (char) 0x00}},
-                {"SP", {"SP", "Stack Pointer", (char) 0x00}},
-                {"DB", {"DB", "Data Bank", (char) 0x00}},
-                {"P", {"P", "Processor Status", (char) 0x00}},
-                {"PC", {"PC", "Program Counter", (char) 0x00}},
+                {"A", {"A", "Accumulator", (char16_t) 0x0000}},
+                {"X", {"X", "Index X", (char16_t) 0x0000}},
+                {"Y", {"Y", "Index Y", (char16_t) 0x0000}},
+                {"SP", {"SP", "Stack Pointer", (char16_t) 0x0000}},
+                {"DB", {"DB", "Data Bank", (char16_t) 0x0000}},
+                {"P", {"P", "Processor Status", (char16_t) 0x0000}},
+                {"PC", {"PC", "Program Counter", (char16_t) 0x0000}},
         };
 
         //instructions and friendly names from https://wiki.superfamicom.org/65816-reference
@@ -83,6 +83,7 @@ namespace cpu {
         Cpu();
         ~Cpu();
         bool load_rom(const char*);
+        error_t run();
         void log_stats();
     };
 

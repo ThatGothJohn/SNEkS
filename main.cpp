@@ -3,18 +3,21 @@
 #include "apu.h"
 #include <stdexcept>
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <cstring>
-
 int main(int argc, char* argv[]) {
+    std::string rom_name;
     if (argc < 2) {
-        printf("\nExpected SNES rom filename as argument\n");
-        throw std::invalid_argument("Rom File not provided!");
+        rom_name = "../roms/test.nes";
+//        printf("\nExpected SNES rom filename as argument\n");
+//        throw std::invalid_argument("Rom File not provided!");
+    } else {
+        rom_name = argv[1];
     }
 
-    cpu::Cpu* main_cpu = new cpu::Cpu;
-    main_cpu->load_rom(argv[1]);
+    auto* main_cpu = new cpu::Cpu;
+    if(!main_cpu->load_rom(rom_name.c_str())) {
+        printf("\nCpu crashed while loading Rom!\n");
+        return 1;
+    }
 
     main_cpu->log_stats();
 
