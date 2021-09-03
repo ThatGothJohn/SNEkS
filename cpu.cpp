@@ -11,7 +11,7 @@ namespace cpu {
 
     Cpu::Cpu() {
         this->m_memory_controller = memory::memoryController();
-
+        this->init_instructions();
         //memory::write_string(this->m_ram, 0, "This is a Test!!!!!");
     }
     Cpu::~Cpu() {
@@ -42,6 +42,7 @@ namespace cpu {
         std::printf("\nRegisters:\n");
         for(auto const& [key, val] : this->m_memory_controller.Registers())
             printf("reg %s: 0x%02X, perms: %i, Virt addr: 0x%02X\n", key.c_str(), val.data, val.permission, val.addr);
+
     }
 
     bool Cpu::load_rom(const char* filename) {
@@ -69,5 +70,9 @@ namespace cpu {
         }
         this->m_memory_controller.load_rom_into_virtual_memory(rom_contents, sizeOfFile);
         return true;
+    }
+
+    void Cpu::init_instructions() {
+        this->instructions[0x61].callback = [this]{ printf("test: %s\n", this->instructions[0x61].friendly_name.c_str()); return true;}; //todo: replace with actual implementations of instructions
     }
 }

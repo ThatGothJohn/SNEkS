@@ -18,6 +18,7 @@ int main(int argc, char* argv[]) {
 
     main_cpu->log_stats();
 
+
     delete main_cpu;
     return 0;
 }
