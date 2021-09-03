@@ -9,18 +9,33 @@
 
 namespace cpu {
 
-    Cpu::Cpu() {
-        this->m_memory_controller = memory::memoryController();
+    Cpu::Cpu(memory::memoryController MemoryController) {
+        this->m_memory_controller = MemoryController;
         this->init_instructions();
         //memory::write_string(this->m_ram, 0, "This is a Test!!!!!");
     }
     Cpu::~Cpu() {
         this->m_memory_controller = {};
     }
-
-#pragma clang diagnostic push
-#pragma ide diagnostic ignored "UnusedLocalVariable"
+//    struct snes_header {
+//        char     name[21];
+//        uint8_t  map_mode;   // xxAAxxxB
+//        uint8_t  rom_type;
+//        uint8_t  rom_size;   // 09,0a,0b,0c,0d [2048^val]
+//        uint8_t  sram_size;
+//        uint8_t  dest_code;
+//        uint8_t  fixed;
+//        uint8_t  version;
+//        uint16_t cmc_check;
+//        uint16_t cksum;
+//    };
     void Cpu::log_stats() {
+        auto cart_info = this->m_memory_controller.Cart_info();
+        printf("Rom name: %s\n", std::string(cart_info["TITLE"].data, cart_info["TITLE"].size).c_str());
+        printf("Version: %s\n", std::string(cart_info["VERSION"].data, cart_info["VERSION"].size).c_str());
+        printf("Rom size: %u\n", std::string(cart_info["ROMSIZE"].data, cart_info["ROMSIZE"].size).c_str());
+        printf("SRAM size: %u\n", cart_info["RAMSIZE"].data);
+
         std::printf("Virtual Memory:\n");
         auto virtual_mem = this->m_memory_controller.VirtualMemory();
 
@@ -31,22 +46,22 @@ namespace cpu {
                 std::printf("\n");
             std::printf("%02hhX", virtual_mem[x]);
         }
-        std::printf("\nPPU Memory:\n");
-        auto PPU_ram = this->m_memory_controller.PPU_Ram();
-
-        for (int x = 0x0000; x < 64 * 1024; x++) {
-            if (x % 4 == 0 && x != 0)
-                std::printf(" ");
-            if (x % 64*8 == 0 && x != 0)
-                std::printf("\n");
-            std::printf("%02hhX", PPU_ram[x]);
-        }
+//        std::printf("\nPPU Memory:\n");
+//        auto PPU_ram = this->m_memory_controller.PPU_Ram();
+//
+//        for (int x = 0x0000; x < 64 * 1024; x++) {
+//            if (x % 4 == 0 && x != 0)
+//                std::printf(" ");
+//            if (x % 64*8 == 0 && x != 0)
+//                std::printf("\n");
+//            std::printf("%02hhX", PPU_ram[x]);
+//        }
         std::printf("\nRegisters:\n");
-        for(auto const& [key, val] : this->m_memory_controller.Registers())
+        auto regis = this->m_memory_controller.Registers();
+        for(auto const& [key, val] : regis)
             printf("reg %s: 0x%02X, perms: %i, Virt addr: 0x%02X\n", key.c_str(), val.data, val.permission, val.addr);
 
     }
-#pragma clang diagnostic pop
 
     bool Cpu::load_rom(const char* filename) {
         FILE* rom_file;
@@ -61,7 +76,7 @@ namespace cpu {
             printf("\nfseek failed!\n");
             return false;
         }
-        auto* rom_contents = (unsigned char*)malloc(sizeOfFile + 1);
+        auto* rom_contents = (char*)malloc(sizeOfFile + 1);
 
         if (rom_contents == nullptr){
             printf("\nFailed to allocate memory for the Rom file!\n");
@@ -75,6 +90,7 @@ namespace cpu {
             printf("Rom name: %s\t Rom size: %li", filename, sizeOfFile);
             return false;
         }
+
         return true;
     }
 

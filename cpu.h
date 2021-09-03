@@ -80,7 +80,8 @@ namespace cpu {
         void init_instructions();
 
     public:
-        Cpu();
+        Cpu() {};
+        Cpu(memory::memoryController);
         ~Cpu();
         bool load_rom(const char*);
         error_t run();

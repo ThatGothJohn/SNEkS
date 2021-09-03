@@ -16,21 +16,9 @@ namespace memory {
         this->setup_virtual_memory();
     }
 
-    memoryController::~memoryController() = default;
+    memoryController::~memoryController()  = default;
 
 
-
-    std::byte *memoryController::ABus() const {
-        return m_A_bus;
-    }
-
-    std::byte *memoryController::BBus() const {
-        return m_B_bus;
-    }
-
-    std::byte *memoryController::DataBus() const {
-        return m_data_bus;
-    }
 
     void memoryController::init_registers() {
         //names from https://wiki.superfamicom.org/registers & http://baltimorebarcams.com/eb/snes/docs/65816/SNES%20Registers.html
@@ -212,21 +200,20 @@ namespace memory {
                 {"DASXL7", reg(0x4375, 0x00, reg::access(reg::access::write | reg::access::word))},       //DMA 7 transfer size
                 {"DASXH7", reg(0x4376, 0x00, reg::access(reg::access::write | reg::access::word))},       //DMA 7 & HDMA address
                 {"NTRLX7", reg(0x437A, 0x00, reg::access::write)},       //DMA 7 Number of lines for HDMA transfer
-
-                //additional no SNES spec, AKA added for roms :)
-                {"FBNANACNT", reg(0xFEED, 0x00, reg::access(reg::access::read | reg::access::write))},  //Felon's banana register
-                {"TITLE", reg(0xFFC0, 0x00, reg::access(reg::access::read | reg::access::write))},  //Cartridge title
-                {"MAPMODE", reg(0xFFD5, 0x00, reg::access(reg::access::read | reg::access::write))},  //mapping mode
-                {"CARTINFO", reg(0xFFD6, 0x00, reg::access(reg::access::read | reg::access::write))},  //ROM/RAM information on cart
-                {"ROMSIZE", reg(0xFFD7, 0x00, reg::access(reg::access::read | reg::access::write))},  //Rom size
-                {"RAMSIZE", reg(0xFFD8, 0x00, reg::access(reg::access::read | reg::access::write))},  //Ram size
-                {"DEVID", reg(0xFFD9, 0x00, reg::access(reg::access::read | reg::access::write))},  //Developer ID code
-                {"VER", reg(0xFFDB, 0x00, reg::access(reg::access::read | reg::access::write))},  //Version Number
-                {"CHECKSUMCOMP", reg(0xFFDC, 0x00, reg::access(reg::access::read | reg::access::write))},  //Checksum complement
-                {"CHECKSUM", reg(0xFFDE, 0x00, reg::access(reg::access::read | reg::access::write))},  //Checksum
-                {"NMIVVBLI", reg(0xFFEA, 0x00, reg::access(reg::access::read | reg::access::write))},  //NMI vector/VBL interrupt
-                {"RESET", reg(0xFFEC, 0x00, reg::access(reg::access::read | reg::access::write))},  //Reset vector
         };
+
+        this->m_cart_info = //additional cart info
+                {
+                    {"TITLE", cart_data(0xFFC0, nullptr, 21)},  //Cartridge title
+                    {"MAPMODE", cart_data(0xFFD5, nullptr, 1)},  //mapping mode
+                    {"CARTINFO", cart_data(0xFFD6, nullptr, 1)},  //ROM type
+                    {"ROMSIZE", cart_data(0xFFD7, nullptr, 1)},  //Rom size
+                    {"RAMSIZE", cart_data(0xFFD8, nullptr, 1)},  //SRam size
+                    {"DEVID", cart_data(0xFFD9, nullptr, 2)},  //Developer ID code
+                    {"VER", cart_data(0xFFDB, nullptr, 1)},  //Version Number
+                    {"CHECKSUMCOMP", cart_data(0xFFDC, nullptr, 2)},  //Checksum complement
+                    {"CHECKSUM", cart_data(0xFFDE, nullptr, 2)},  //Checksum
+                };
     }
 
     void memoryController::init_ram() {
@@ -234,15 +221,15 @@ namespace memory {
     }
 
     void memoryController::init_A_bus() {
-        this->m_A_bus = new std::byte[3]; //24-bit
+        this->m_A_bus = new char8_t[3]; //24-bit
     }
 
     void memoryController::init_B_bus() {
-        this->m_B_bus = new std::byte[1]; //8-bit
+        this->m_B_bus = new char8_t[1]; //8-bit
     }
 
     void memoryController::init_data_bus() {
-        this->m_data_bus = new std::byte[1]; //8-bit
+        this->m_data_bus = new char8_t[1]; //8-bit
     }
 
     void memoryController::init_PPU_ram(){
@@ -250,43 +237,33 @@ namespace memory {
     };
 
     void memoryController::setup_virtual_memory() { //http://www.emulatronia.com/doctec/consolas/snes/SNESMem.txt
-
+        this->m_virtual_memory = new char8_t[0x10000];
     }
 
-    bool memoryController::write_byte(std::byte *mem, int addr, std::byte data) {
+    bool memoryController::write_byte(char8_t *mem, int addr, char8_t data) {
         mem[addr] = data;
         return true;
     }
 
-    bool memoryController::write_bytes(std::byte *mem, int start_addr, std::byte *data, int len) {
+    bool memoryController::write_bytes(char8_t *mem, int start_addr, char8_t *data, int len) {
         for (int x = 0; x < len; x++)
             mem[start_addr + x] = data[x];
         return true;
     }
 
-    bool memoryController::write_nulls(std::byte *mem, int start_addr, int len){
+    bool memoryController::write_nulls(char8_t *mem, int start_addr, int len){
         for (int x = 0; x < len; x++)
-            mem[start_addr + x] = (std::byte)0x00;
+            mem[start_addr + x] = (char8_t)0x00;
         return true;
     };
 
-    bool memoryController::write_string(std::byte *mem, int start_addr, std::string data) {
+    bool memoryController::write_string(char8_t *mem, int start_addr, std::string data) {
         int len = data.length();
-        auto *str_data = (std::byte *) data.c_str();
+        auto *str_data = (char8_t *) data.c_str();
         return write_bytes(mem, start_addr, str_data, len);
     }
 
-    const std::map<std::string, memoryController::reg> memoryController::Registers() const {
-        return this->m_registers;
-    }
 
-    std::byte * memoryController::PPU_Ram() const {
-        return this->m_PPU_ram;
-    }
-
-    std::byte *memoryController::VirtualMemory() const {
-        return this->m_virtual_memory;
-    };
 
     std::pair<std::string, memoryController::reg> memoryController::Register_from_address (int addr){ //yes this is inefficient, but I either do this or
                                                                                                       // I change the registers' data structure
@@ -298,14 +275,37 @@ namespace memory {
         return {};
     }
 
-    bool memoryController::load_rom_into_virtual_memory(unsigned char * rom, long int size) {
-        if (size == 0x200200){
-            printf("Headered!!!");
-        } else if (size == 0x200000) {
-            printf("Not Headered!!!");
-        } else {
-            printf("Uh-oh, rom size: %li", size);
+    void memoryController::get_cart_info() {
+        for(auto const& [key, val] : this->m_cart_info) {
+            char* buf = new char[val.size];
+            for (int x = 0; x < val.size; x++) {
+                buf[x] = this->m_virtual_memory[val.addr + x];
+            }
+            this->m_cart_info[key].data = buf;
         }
+    }
+
+    void memoryController::update_registers(){
+        for(auto const& [key, val] : this->m_registers) {
+            this->m_registers[key].data = this->m_virtual_memory[val.addr];
+        }
+    }
+
+    bool memoryController::load_rom_into_virtual_memory(char * rom, long int size) {
+        if (size % 1024 == 0) {
+            this->game_cart = reinterpret_cast<char8_t *>(rom);
+        } else if (size % 1024 == 512) {
+            this->game_cart = reinterpret_cast<char8_t *>(rom+512);
+        } else {
+            printf("Malformed Rom Header!");
+        }
+
+        if (size >= 0x8000) { //extra protection from segfault, no rom should be smaller than this
+            for (int x = 0; x < 0x8000; x++) //load first bank of the cartridge into vmem
+                this->m_virtual_memory[0x8000 + x] = this->game_cart[x];
+        }
+        this->get_cart_info();
+
         return true;
     }
 

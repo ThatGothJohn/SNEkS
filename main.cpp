@@ -12,15 +12,15 @@ int main(int argc, char* argv[]) {
     } else {
         rom_name = argv[1];
     }
+    auto memCtl = new memory::memoryController();
 
-    auto* main_cpu = new cpu::Cpu;
+    auto* main_cpu = new cpu::Cpu(*memCtl);
     if(!main_cpu->load_rom(rom_name.c_str())) {
         printf("\nCpu crashed while loading Rom!\n");
         return 1;
     }
 
-    //main_cpu->log_stats();
-
+    main_cpu->log_stats();
 
     delete main_cpu;
     return 0;
