@@ -118,6 +118,8 @@ namespace memory {
 
         void update_registers();
 
+        void LoRom();
+
     public:
         memoryController();
 
