@@ -12,6 +12,24 @@
 namespace memory {
 
     class memoryController {
+
+        //Todo: memory:
+        //      Always mapped to the same locations : Cpu registers, WorkRAM, PPU registers, OAM ColorGraphicsRAM, VideoRAM, Audio RAM, Joypad memory, interrupt vectors
+        //      :
+        //      Mapping modes: Rom image, SaveRAM, enhancement chips (I-RAM (co-processor memory), Control Registers (co-processor), BackupWorkRAM)
+        //      :                  bank page byte
+        //      VIRTUAL MEMORY SIZE: $FF FF FF
+        //      :
+        //      WRAM accessed at 2.68MHz
+        //      Romsel $000000-$7FFFFF 2.68MHz
+        //      Romsel $800000-$FFFFFF 2.68 or 3.58MHz  (dependant on bit 0 of $420D (MEMSEL "register"), FastROM = 1, SlowROM = 0)
+        //      :
+        //      pages in remaining banks at $XX2000-$XX5FFF 3.58MHz
+        //      bar pages $XX4000-$XX41FF limited to 1.78MHz
+        //      :
+        //      pages $XX6000 - $XX7FFF 2.68 MHz
+
+
     private:
         struct reg{
             int addr;
@@ -40,6 +58,15 @@ namespace memory {
                     : addr(reg_addr), data(data), size(size){}
         };
 
+        struct ram_map{
+
+            int vmem_addr;
+            size_t len;
+
+            ram_map() = default;
+            ram_map(int virt_addr, int size) : vmem_addr(virt_addr), len(size) {}
+        };
+
         //         24-bit
         int m_A_bus_len = 3;
         char8_t *m_A_bus;
@@ -61,6 +88,8 @@ namespace memory {
         char8_t *m_PPU_ram;
 
         char8_t* m_virtual_memory;
+
+        ram_map* mapping;
 
 
         void init_registers();

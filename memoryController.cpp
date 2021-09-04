@@ -204,15 +204,15 @@ namespace memory {
 
         this->m_cart_info = //additional cart info
                 {
-                    {"TITLE", cart_data(0xFFC0, nullptr, 21)},  //Cartridge title
-                    {"MAPMODE", cart_data(0xFFD5, nullptr, 1)},  //mapping mode
-                    {"CARTINFO", cart_data(0xFFD6, nullptr, 1)},  //ROM type
-                    {"ROMSIZE", cart_data(0xFFD7, nullptr, 1)},  //Rom size
-                    {"RAMSIZE", cart_data(0xFFD8, nullptr, 1)},  //SRam size
-                    {"DEVID", cart_data(0xFFD9, nullptr, 2)},  //Developer ID code
-                    {"VER", cart_data(0xFFDB, nullptr, 1)},  //Version Number
-                    {"CHECKSUMCOMP", cart_data(0xFFDC, nullptr, 2)},  //Checksum complement
-                    {"CHECKSUM", cart_data(0xFFDE, nullptr, 2)},  //Checksum
+                    {"TITLE", cart_data(0x7FC0, nullptr, 21)},  //Cartridge title
+                    {"MAPMODE", cart_data(0x7FD5, nullptr, 1)},  //mapping mode
+                    {"CARTINFO", cart_data(0x7FD6, nullptr, 1)},  //ROM type
+                    {"ROMSIZE", cart_data(0x7FD7, nullptr, 1)},  //Rom size
+                    {"RAMSIZE", cart_data(0x7FD8, nullptr, 1)},  //SRam size
+                    {"DEVID", cart_data(0x7FD9, nullptr, 2)},  //Developer ID code
+                    {"VER", cart_data(0x7FDB, nullptr, 1)},  //Version Number
+                    {"CHECKSUMCOMP", cart_data(0x7FDC, nullptr, 2)},  //Checksum complement
+                    {"CHECKSUM", cart_data(0x7FDE, nullptr, 2)},  //Checksum
                 };
     }
 
@@ -237,7 +237,16 @@ namespace memory {
     };
 
     void memoryController::setup_virtual_memory() { //http://www.emulatronia.com/doctec/consolas/snes/SNESMem.txt
-        this->m_virtual_memory = new char8_t[0x10000];
+        this->m_virtual_memory = new char8_t[0x1000000];
+        int number_of_mappings = 64; //fixme: safe overestimate, this can and should be calculated/resized to not waste memory
+        this->mapping = new ram_map[number_of_mappings];
+        this->mapping[0] = ram_map(0x7E0000,128*1024); //WRAM
+        this->mapping[1] = ram_map(0x0000,128*32); //WRAM mirror
+        this->mapping[2] = ram_map(0x2100, 64); //PPU Registers
+        this->mapping[3] = ram_map(0x4100, 64); //CPU Registers
+        this->mapping[4] = ram_map(0x4016, 2); //Joypad mapping
+        this->mapping[5] = ram_map(0x2140, 24256); //Aux
+        //ROMSEL changes layout and mapping with different mappers, as such it wil be defined after rom load
     }
 
     bool memoryController::write_byte(char8_t *mem, int addr, char8_t data) {
@@ -279,7 +288,7 @@ namespace memory {
         for(auto const& [key, val] : this->m_cart_info) {
             char* buf = new char[val.size];
             for (int x = 0; x < val.size; x++) {
-                buf[x] = this->m_virtual_memory[val.addr + x];
+                buf[x] = this->game_cart[val.addr + x];
             }
             this->m_cart_info[key].data = buf;
         }
@@ -298,16 +307,21 @@ namespace memory {
             this->game_cart = reinterpret_cast<char8_t *>(rom+512);
         } else {
             printf("Malformed Rom Header!");
+            return false;
         }
 
-        if (size >= 0x8000) { //extra protection from segfault, no rom should be smaller than this
-            for (int x = 0; x < 0x8000; x++) //load first bank of the cartridge into vmem
-                this->m_virtual_memory[0x8000 + x] = this->game_cart[x];
-        }
         this->get_cart_info();
+
+        //Todo: mappers
+        char map_mode = this->game_cart[this->m_cart_info["MAPMODE"].addr];
+        switch (map_mode) { //map modes from https://en.wikibooks.org/wiki/Super_NES_Programming/SNES_memory_map#How_do_I_recognize_the_ROM_type?
+            case 0x20:  //LoROM
+                break;
+            default:
+                printf("map_mode: %02X not implemented!!!\n", map_mode);
+                return false;
+        }
 
         return true;
     }
-
-
 }

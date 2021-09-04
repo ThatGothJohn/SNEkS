@@ -12,29 +12,16 @@ namespace cpu {
     Cpu::Cpu(memory::memoryController MemoryController) {
         this->m_memory_controller = MemoryController;
         this->init_instructions();
-        //memory::write_string(this->m_ram, 0, "This is a Test!!!!!");
     }
     Cpu::~Cpu() {
         this->m_memory_controller = {};
     }
-//    struct snes_header {
-//        char     name[21];
-//        uint8_t  map_mode;   // xxAAxxxB
-//        uint8_t  rom_type;
-//        uint8_t  rom_size;   // 09,0a,0b,0c,0d [2048^val]
-//        uint8_t  sram_size;
-//        uint8_t  dest_code;
-//        uint8_t  fixed;
-//        uint8_t  version;
-//        uint16_t cmc_check;
-//        uint16_t cksum;
-//    };
     void Cpu::log_stats() {
         auto cart_info = this->m_memory_controller.Cart_info();
         printf("Rom name: %s\n", std::string(cart_info["TITLE"].data, cart_info["TITLE"].size).c_str());
-        printf("Version: %s\n", std::string(cart_info["VERSION"].data, cart_info["VERSION"].size).c_str());
-        printf("Rom size: %u\n", std::string(cart_info["ROMSIZE"].data, cart_info["ROMSIZE"].size).c_str());
-        printf("SRAM size: %u\n", cart_info["RAMSIZE"].data);
+//        printf("Version: %s\n", std::string(cart_info["VERSION"].data, cart_info["VERSION"].size).c_str());
+//        printf("Rom size: %u\n", std::string(cart_info["ROMSIZE"].data, cart_info["ROMSIZE"].size).c_str());
+//        printf("SRAM size: %u\n", cart_info["RAMSIZE"].data);
 
         std::printf("Virtual Memory:\n");
         auto virtual_mem = this->m_memory_controller.VirtualMemory();
