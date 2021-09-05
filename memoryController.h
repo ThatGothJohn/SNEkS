@@ -14,9 +14,9 @@ namespace memory {
     class memoryController {
 
         //Todo: memory:
-        //      Always mapped to the same locations : Cpu registers, WorkRAM, PPU registers, OAM ColorGraphicsRAM, VideoRAM, Audio RAM, Joypad memory, interrupt vectors
+        //      Always mapped to the same locations : CPU registers, WorkRAM, PPU registers, OAM ColorGraphicsRAM, VideoRAM, Audio RAM, Joypad memory, interrupt vectors
         //      :
-        //      Mapping modes: Rom image, SaveRAM, enhancement chips (I-RAM (co-processor memory), Control Registers (co-processor), BackupWorkRAM)
+        //      Mapping modes: Rom image, StaticRAM, enhancement chips (I-RAM (co-processor memory), Control Registers (co-processor), BackupWorkRAM)
         //      :                  bank page byte
         //      VIRTUAL MEMORY SIZE: $FF FF FF
         //      :
@@ -68,17 +68,16 @@ namespace memory {
         //         8-bit
         int m_data_bus_len = 1;
         char8_t *m_data_bus;
-        //         128kB
-        char8_t *m_ram;
-
-        char8_t *game_cart;
 
         std::map<std::string, reg> m_registers;
         std::map<std::string, cart_data> m_cart_info;
 
-        char8_t *m_PPU_ram;
+        char8_t *m_ppu_registers;   //ppu registers
+        char8_t *m_vram;    //video ram
+        char16_t *m_cgram;   //color graphics ram
+        char8_t *m_oam;     //object attribute memory
 
-        char8_t* m_virtual_memory;
+        char8_t* m_virtual_memory;  //the memory space that the cpu "sees"
 
         void init_registers();
 
@@ -94,6 +93,8 @@ namespace memory {
 
         void setup_virtual_memory();
 
+        void setup_ppu_memory();
+
         bool write_byte(char8_t *mem, int addr, char8_t data);
 
         bool write_bytes(char8_t *mem, int start_addr, char8_t *data, int len);
@@ -107,6 +108,8 @@ namespace memory {
         void update_registers();
 
         void LoRom();
+
+        void HiRom();
 
     public:
         memoryController();
@@ -135,16 +138,18 @@ namespace memory {
             return this->m_registers;
         }
 
-        char8_t * PPU_Ram() {
-            return this->m_PPU_ram;
-        }
-
         char8_t *VirtualMemory() {
             return this->m_virtual_memory;
         };
 
+        char8_t *VRam(){
+            return this->m_vram;
+        }
+
 
         std::pair<std::string, reg> Register_from_address (int addr);
+
+        char8_t *game_cart;
 
     };
 }

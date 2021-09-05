@@ -3,17 +3,15 @@
 //
 
 #include "memoryController.h"
-#include "cpu.h"
 
 namespace memory {
     memoryController::memoryController() {
-        this->init_ram();
-        this->init_PPU_ram();
         this->init_data_bus();
         this->init_A_bus();
         this->init_B_bus();
         this->init_registers();
         this->setup_virtual_memory();
+        this->setup_ppu_memory();
     }
 
     memoryController::~memoryController() = default;
@@ -281,7 +279,7 @@ namespace memory {
         };
 
         this->m_cart_info = //additional cart info from ignoring fixed values : https://sneslab.net/wiki/SNES_ROM_Header and https://en.wikibooks.org/wiki/Super_NES_Programming/SNES_memory_map
-                {   //yes this could just be done with a struct, but at the time of writing this code i got a bit mad with my map making powers
+                {   //yes this could just be done with a struct, but at the time of writing this code I got a bit mad with my map making powers
                         {"MAKER",        cart_data(0x7FB0, nullptr, 2)},  //Maker Code
                         {"GAME",         cart_data(0x7FB2, nullptr, 4)},  //Game Code
                         {"EXRAMSIZE",    cart_data(0x7FBD, nullptr, 1)},  //Expansion Ram Size
@@ -299,10 +297,6 @@ namespace memory {
                 };
     }
 
-    void memoryController::init_ram() {
-
-    }
-
     void memoryController::init_A_bus() {
         this->m_A_bus = new char8_t[3]; //24-bit
     }
@@ -315,14 +309,19 @@ namespace memory {
         this->m_data_bus = new char8_t[1]; //8-bit
     }
 
-    void memoryController::init_PPU_ram() {
-
+    void memoryController::setup_ppu_memory() {
+        this->m_ppu_registers = this->m_virtual_memory+0x002100;
+        this->m_vram = new char8_t[0x400];
+        this->m_cgram = new char16_t[0x100]; //fixme: might make this a union so that byte access is easier
+        this->m_oam = new char8_t[0x220];
     };
 
     void memoryController::setup_virtual_memory() { //http://www.emulatronia.com/doctec/consolas/snes/SNESMem.txt
         this->m_virtual_memory = new char8_t[0x1000000];
         //todo: setup mappings
     }
+
+
 
     bool memoryController::write_byte(char8_t *mem, int addr, char8_t data) {
         mem[addr] = data;
@@ -377,6 +376,9 @@ namespace memory {
 
     bool memoryController::load_rom_into_virtual_memory(char *rom, long int size) {
         if (size % 1024 == 0) {
+            for (auto [key, val] : this->m_cart_info) {
+                this->m_cart_info[key].addr += 0x8000;
+            }
             this->game_cart = reinterpret_cast<char8_t *>(rom);
         } else if (size % 1024 == 512) {
             this->game_cart = reinterpret_cast<char8_t *>(rom + 512);
@@ -388,12 +390,14 @@ namespace memory {
         this->get_cart_info();
 
         //Todo: mappers
-        char map_mode = this->game_cart[this->m_cart_info["MAPMODE"].addr];
-        bool fast_rom = (map_mode & 0x10) == 0x10;
+        char map_mode = this->game_cart[this->m_cart_info["MAPMODE"].addr] & 0xEF;
+        bool fast_rom = (this->game_cart[this->m_cart_info["MAPMODE"].addr] & 0x10) == 0x10;
         switch (map_mode) { //map modes from https://en.wikibooks.org/wiki/Super_NES_Programming/SNES_memory_map#How_do_I_recognize_the_ROM_type
             case 0x20:  //LoROM
                 LoRom();
-                return false;
+                break;
+            case 0x21:
+                HiRom();
                 break;
             default:
                 printf("Mapping mode: %02X not implemented!!!\n", map_mode);
@@ -408,5 +412,34 @@ namespace memory {
     void memoryController::LoRom() {
         int game_rom_size = 0x400 << this->game_cart[this->m_cart_info["ROMSIZE"].addr];
         int game_sram_size = 0x400 << this->game_cart[this->m_cart_info["RAMSIZE"].addr];
+
+        //Load Rom
+        for (int x = 0; x < game_rom_size; x++){
+            int addr = (x % 0x8000) +0x808000;
+            int mirror_addr = (x % 0x8000) +0x8000;
+
+            this->m_virtual_memory[addr] = this->game_cart[x];
+            this->m_virtual_memory[mirror_addr] = this->game_cart[x]; //"horizontal" mirror
+
+            if (x >= 0x4000) { //"vertical" mirror
+                this->m_virtual_memory[addr - 0x8000] = this->game_cart[x];
+                this->m_virtual_memory[mirror_addr - 0x8000] = this->game_cart[x];
+            }
+
+        }
+
+        //Load SRAM
+        for (int x = 0; x < game_sram_size; x++){
+            int addr = (x % 0x8000) +0xF00000;
+            this->m_virtual_memory[addr] = this->game_cart[game_sram_size+x]; //todo: sram mirroring
+        }
+
+    }
+    void memoryController::HiRom() {
+        int game_rom_size = 0x400 << this->game_cart[this->m_cart_info["ROMSIZE"].addr];
+        int game_sram_size = 0x400 << this->game_cart[this->m_cart_info["RAMSIZE"].addr];
+
+        //todo: HiRom
+
     }
 }
