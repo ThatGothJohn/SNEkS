@@ -281,7 +281,7 @@ namespace memory {
         };
 
         this->m_cart_info = //additional cart info from ignoring fixed values : https://sneslab.net/wiki/SNES_ROM_Header and https://en.wikibooks.org/wiki/Super_NES_Programming/SNES_memory_map
-                {
+                {   //yes this could just be done with a struct, but at the time of writing this code i got a bit mad with my map making powers
                         {"MAKER",        cart_data(0x7FB0, nullptr, 2)},  //Maker Code
                         {"GAME",         cart_data(0x7FB2, nullptr, 4)},  //Game Code
                         {"EXRAMSIZE",    cart_data(0x7FBD, nullptr, 1)},  //Expansion Ram Size
@@ -321,15 +321,7 @@ namespace memory {
 
     void memoryController::setup_virtual_memory() { //http://www.emulatronia.com/doctec/consolas/snes/SNESMem.txt
         this->m_virtual_memory = new char8_t[0x1000000];
-        int number_of_mappings = 64; //fixme: safe overestimate, this can and should be calculated/resized to not waste memory
-        this->mapping = new ram_map[number_of_mappings];
-        this->mapping[0] = ram_map(0x7E0000, 128 * 1024); //WRAM
-        this->mapping[1] = ram_map(0x0000, 128 * 32); //WRAM mirror
-        this->mapping[2] = ram_map(0x2100, 64); //PPU Registers
-        this->mapping[3] = ram_map(0x4100, 64); //CPU Registers
-        this->mapping[4] = ram_map(0x4016, 2); //Joypad mapping
-        this->mapping[5] = ram_map(0x2140, 24256); //Aux
-        //ROMSEL changes layout and mapping with different mappers, as such it wil be defined after rom load
+        //todo: setup mappings
     }
 
     bool memoryController::write_byte(char8_t *mem, int addr, char8_t data) {
@@ -416,7 +408,5 @@ namespace memory {
     void memoryController::LoRom() {
         int game_rom_size = 0x400 << this->game_cart[this->m_cart_info["ROMSIZE"].addr];
         int game_sram_size = 0x400 << this->game_cart[this->m_cart_info["RAMSIZE"].addr];
-        this->mapping[6] = ram_map(0x8000, game_rom_size); //rom
-        this->mapping[7] = ram_map(0x0000, game_sram_size); //sram
     }
 }

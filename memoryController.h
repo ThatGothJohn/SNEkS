@@ -58,15 +58,6 @@ namespace memory {
                     : addr(reg_addr), data(data), size(size){}
         };
 
-        struct ram_map{
-
-            int vmem_addr;
-            size_t len;
-
-            ram_map() = default;
-            ram_map(int virt_addr, int size) : vmem_addr(virt_addr), len(size) {}
-        };
-
         //         24-bit
         int m_A_bus_len = 3;
         char8_t *m_A_bus;
@@ -88,9 +79,6 @@ namespace memory {
         char8_t *m_PPU_ram;
 
         char8_t* m_virtual_memory;
-
-        ram_map* mapping;
-
 
         void init_registers();
 
