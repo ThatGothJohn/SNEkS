@@ -43,6 +43,7 @@ namespace ppu {
 
             SDL_UpdateWindowSurface(window);
 
+            //junk data format for temp fixme: implement Format and change with video mode
             Uint32 rmask, gmask, bmask, amask;
 
             rmask = 0x000000ff;
@@ -52,12 +53,12 @@ namespace ppu {
 
 
             int depth, pitch;
-            depth = 32;
-            pitch = 4*128;
+            depth = 8;
+            pitch = 4*16;
 
 
             //SDL_CreateRGBSurfaceWithFormat    fixme: use with format, and change format depending on video mode
-            SDL_Surface* VRAM_Surface = SDL_CreateRGBSurfaceFrom((void*)vram, 16, 16, depth, pitch, rmask, gmask, bmask, amask);
+            SDL_Surface* VRAM_Surface = SDL_CreateRGBSurfaceFrom((void*)vram, 128, 128, depth, pitch, rmask, gmask, bmask, amask);
 
             bool keep_window_open = true;
 

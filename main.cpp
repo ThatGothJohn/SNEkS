@@ -27,9 +27,9 @@ int main(int argc, char* argv[]) {
     main_cpu->log_stats();
 
     auto cpu_runtime = main_cpu->run();
-    auto ppu_runtime = main_ppu->run();
-
-    ppu_runtime.join();
+//    auto ppu_runtime = main_ppu->run();
+//
+//    ppu_runtime.join();
     cpu_runtime.join();
 
     delete main_cpu;

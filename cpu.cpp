@@ -74,6 +74,8 @@ namespace cpu {
             return false;
         }
 
+        this->init();
+
         return true;
     }
 
@@ -82,15 +84,16 @@ namespace cpu {
     }
 
     void CPU::init() {
-        this->cpu_registers["P"].data = this->m_memory_controller->VirtualMemory()[this->m_memory_controller->Registers()["RESET"].addr];
+        auto* reset_vector = reinterpret_cast<char16_t *>(this->m_memory_controller->game_cart + this->m_memory_controller->Cart_info()["RESET"].addr);
+        this->cpu_registers["P"].data = reset_vector[0];
         this->cpu_registers["SP"].data = 0x000001FC;
     }
 
     std::thread CPU::run(){
-        this->init();
         std::thread runtime([this](){
             while (true){
                 auto pc = this->cpu_registers["P"];
+                printf("PC: %04X\n", pc.data);
                 auto current_instruction = this->m_memory_controller->VirtualMemory()[pc.data];
                 if (!this->instructions.contains(current_instruction)){
                     printf("Instruction %02X not implemented!!!", current_instruction);

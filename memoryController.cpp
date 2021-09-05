@@ -294,6 +294,9 @@ namespace memory {
                         {"VER",          cart_data(0x7FDB, nullptr, 1)},  //Masked Rom Version
                         {"CHECKSUMCOMP", cart_data(0x7FDC, nullptr, 2)},  //Checksum complement
                         {"CHECKSUM",     cart_data(0x7FDE, nullptr, 2)},  //Checksum
+                        {"NMIVBL",     cart_data(0x7FEA, nullptr, 2)},  //NMI vector/VBL interrupt.
+                        {"RESET",     cart_data(0x7FEC, nullptr, 2)},  //RESET VECTOR
+
                 };
     }
 
@@ -389,16 +392,16 @@ namespace memory {
 
         this->get_cart_info();
 
-        //Todo: mappers
+        //Todo: more mappers
         char map_mode = this->game_cart[this->m_cart_info["MAPMODE"].addr] & 0xEF;
         bool fast_rom = (this->game_cart[this->m_cart_info["MAPMODE"].addr] & 0x10) == 0x10;
         switch (map_mode) { //map modes from https://en.wikibooks.org/wiki/Super_NES_Programming/SNES_memory_map#How_do_I_recognize_the_ROM_type
             case 0x20:  //LoROM
                 LoRom();
                 break;
-            case 0x21:
-                HiRom();
-                break;
+//            case 0x21:
+//                HiRom();
+//                break;
             default:
                 printf("Mapping mode: %02X not implemented!!!\n", map_mode);
                 return false;
@@ -412,27 +415,53 @@ namespace memory {
     void memoryController::LoRom() {
         int game_rom_size = 0x400 << this->game_cart[this->m_cart_info["ROMSIZE"].addr];
         int game_sram_size = 0x400 << this->game_cart[this->m_cart_info["RAMSIZE"].addr];
-
+        ;
         //Load Rom
-        for (int x = 0; x < game_rom_size; x++){
-            int addr = (x % 0x8000) +0x808000;
-            int mirror_addr = (x % 0x8000) +0x8000;
+        printf("Reset addr: %04X\n", reinterpret_cast<char16_t*>(this->game_cart + this->m_cart_info["RESET"].addr)[0]);
+//        for (int x = 0; x < game_rom_size; x++){
+//            int addr = (x % 0x8000) +0x808000;
+//            //printf("$%02X:%04X", (addr & 0xFF0000) / 0x10000, addr & 0xFFFF);
+//            int mirror_addr = (x % 0x8000) +0x8000;
+//
+//            this->m_virtual_memory[addr] = this->game_cart[x];
+//            this->m_virtual_memory[mirror_addr] = this->game_cart[x]; //"horizontal" mirror
+//
+//            if (x >= 0x4000) { //"vertical" mirror
+//                this->m_virtual_memory[addr - 0x8000] = this->game_cart[x];
+//                this->m_virtual_memory[mirror_addr - 0x8000] = this->game_cart[x];
+//            }
+//
+//        }
 
-            this->m_virtual_memory[addr] = this->game_cart[x];
-            this->m_virtual_memory[mirror_addr] = this->game_cart[x]; //"horizontal" mirror
-
-            if (x >= 0x4000) { //"vertical" mirror
-                this->m_virtual_memory[addr - 0x8000] = this->game_cart[x];
-                this->m_virtual_memory[mirror_addr - 0x8000] = this->game_cart[x];
+        //temporary fixed LoRam code cause i can't math rn fixme: fix commented out math
+        int rom_addr = 0;
+        for(int64_t bank = 0x80; bank<0xFF; bank++){
+            for (int64_t page_byte = 0x8000; page_byte < 0xFFFF; page_byte++){
+                this->m_virtual_memory[(bank<<0x10000) | page_byte] = this->game_cart[rom_addr++];//rom
+                this->m_virtual_memory[((bank-0x80)<<0x10000) | page_byte] = this->game_cart[rom_addr++];//horizontal mirror
+                if (bank >= 0xC0){ //vertical mirroring
+                    this->m_virtual_memory[(bank<<0x10000) | (page_byte-0x8000)] = this->game_cart[rom_addr++];//rom
+                    this->m_virtual_memory[((bank-0x80)<<0x10000) | (page_byte-0x8000)] = this->game_cart[rom_addr++];//horizontal mirror
+                }
             }
-
         }
+
 
         //Load SRAM
-        for (int x = 0; x < game_sram_size; x++){
-            int addr = (x % 0x8000) +0xF00000;
-            this->m_virtual_memory[addr] = this->game_cart[game_sram_size+x]; //todo: sram mirroring
+//        for (int x = 0; x < game_sram_size; x++){
+//            int addr = (x % 0x8000) +0xF00000;
+//            this->m_virtual_memory[addr] = this->game_cart[game_sram_size+x]; //todo: sram mirroring
+//        }
+        //temporary fixed LoRam code cause i can't math rn fixme: fix commented out math
+        int sram_addr = 0;
+        for(int64_t bank = 0xF0; bank<0xFF; bank++){
+            for (int64_t page_byte = 0x0000; page_byte < 0x8000; page_byte++){
+                this->m_virtual_memory[(bank<<0x10000) | page_byte] = this->game_cart[rom_addr++];//sram
+                this->m_virtual_memory[((bank-0x80)<<0x10000) | page_byte] = this->game_cart[rom_addr++];//horizontal mirror
+                //fixme: this doesn't mirror the sram to bank $FF but this is a temp hacky fix anyway
+            }
         }
+
 
     }
     void memoryController::HiRom() {
