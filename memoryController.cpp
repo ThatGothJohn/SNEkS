@@ -2,6 +2,7 @@
 // Created by john on 02/09/2021.
 //
 
+#include <cstring>
 #include "memoryController.h"
 
 namespace memory {
@@ -349,9 +350,7 @@ namespace memory {
         return write_bytes(mem, start_addr, str_data, len);
     }
 
-
-    std::pair<std::string, memoryController::reg>
-    memoryController::Register_from_address(int addr) { //yes this is inefficient, but I either do this or
+    std::pair<std::string, memoryController::reg> memoryController::Register_from_address(int addr) { //yes this is inefficient, but I either do this or
         // I change the registers' data structure
         for (auto const&[key, val]: this->m_registers) {
             if (val.addr == addr) {
@@ -417,7 +416,6 @@ namespace memory {
         int game_sram_size = 0x400 << this->game_cart[this->m_cart_info["RAMSIZE"].addr];
         ;
         //Load Rom
-        printf("Reset addr: %04X\n", reinterpret_cast<char16_t*>(this->game_cart + this->m_cart_info["RESET"].addr)[0]);
 //        for (int x = 0; x < game_rom_size; x++){
 //            int addr = (x % 0x8000) +0x808000;
 //            //printf("$%02X:%04X", (addr & 0xFF0000) / 0x10000, addr & 0xFFFF);

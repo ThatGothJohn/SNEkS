@@ -20,7 +20,7 @@ namespace memory {
         //      :                  bank page byte
         //      VIRTUAL MEMORY SIZE: $FF FF FF
         //      :
-        //      WRAM accessed at 2.68MHz
+        //      WRAM accessed at 2.68MHz            (($7E0000 - $7E1FFF) mirrored ($0000 to $1FFF)
         //      Romsel $000000-$7FFFFF 2.68MHz
         //      Romsel $800000-$FFFFFF 2.68 or 3.58MHz  (dependant on bit 0 of $420D (MEMSEL "register"), FastROM = 1, SlowROM = 0)
         //      :
@@ -145,7 +145,6 @@ namespace memory {
         char8_t *VRam(){
             return this->m_vram;
         }
-
 
         std::pair<std::string, reg> Register_from_address (int addr);
 

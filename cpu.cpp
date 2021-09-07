@@ -18,6 +18,7 @@ namespace cpu {
 //        printf("Version: %s\n", std::string(cart_info["VERSION"].data, cart_info["VERSION"].size).c_str());
         printf("Rom size: %uBytes\n", 0x400<<cart[cart_info["ROMSIZE"].addr]);
         printf("SRAM size: %uBytes\n", 0x400<<cart[cart_info["RAMSIZE"].addr]);
+        printf("data at vmem addr $008000: $%02X\n", this->m_memory_controller->VirtualMemory()[0x008000]);
 
 //        std::printf("Virtual Memory 0x800000-0x900000:\n");
 //        auto virtual_mem = this->m_memory_controller.VirtualMemory();
