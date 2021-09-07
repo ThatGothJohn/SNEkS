@@ -18,7 +18,11 @@ namespace cpu {
 //        printf("Version: %s\n", std::string(cart_info["VERSION"].data, cart_info["VERSION"].size).c_str());
         printf("Rom size: %uBytes\n", 0x400<<cart[cart_info["ROMSIZE"].addr]);
         printf("SRAM size: %uBytes\n", 0x400<<cart[cart_info["RAMSIZE"].addr]);
-        printf("data at vmem addr $008000: $%02X\n", this->m_memory_controller->VirtualMemory()[0x008000]);
+
+        printf("first 10 bytes of cart:\n");
+        for(int x = 0; x< 10; x++)
+            printf("$%02X\t", cart[x]);
+        printf("\n");
 
 //        std::printf("Virtual Memory 0x800000-0x900000:\n");
 //        auto virtual_mem = this->m_memory_controller.VirtualMemory();
@@ -81,23 +85,47 @@ namespace cpu {
     }
 
     void CPU::init_instructions() { //important instruction resource: https://emudev.de/q00-snes/65816-the-cpu/
-        this->instructions[0x7B].callback = [this]{; return true;}; //todo: replace with actual implementations of instructions
+        //todo: implementations of instructions
+        //      generalize certain instructions AKA ADC and avoid repeated implementation code
+        this->instructions[0x9c].callback = [this]{
+            auto vmem = this->m_memory_controller->VirtualMemory();
+            auto addr = vmem[this->cpu_registers["PC"].data+2]<<8 | vmem[this->cpu_registers["PC"].data+1];
+            printf("Set $%04X to Zero\n", addr); //todo: bus stuff
+            this->m_memory_controller->VirtualMemory()[addr] = 0x00;
+            this->clocks = this->instructions[0x9c].base_cycles + ((this->cpu_registers["P"].data & 0x20) == 0x20);
+            this->cpu_registers["PC"].data += this->instructions[0x9c].bytes;
+            return true;
+        };
+        this->instructions[0x78].callback = [this]{
+            this->cpu_registers["P"].data | 0x04; //set Interrupt disable Flag
+            this->clocks = this->instructions[0x78].base_cycles;
+            this->cpu_registers["PC"].data += this->instructions[0x78].bytes;
+            return true;
+        };
+        this->instructions[0x80].callback = [this]{
+            auto vmem = this->m_memory_controller->VirtualMemory();
+            auto jump_size = vmem[this->cpu_registers["PC"].data + 1];
+            printf("Jump by $%02X from $%06X\t", jump_size, this->cpu_registers["PC"].data);
+            this->cpu_registers["PC"].data += this->instructions[0x80].bytes + jump_size;
+            printf("Landed at $%06X\n",this->cpu_registers["PC"].data);
+            return true;
+        };
     }
 
     void CPU::init() {
-        auto* reset_vector = reinterpret_cast<char16_t *>(this->m_memory_controller->game_cart + this->m_memory_controller->Cart_info()["RESET"].addr);
-        this->cpu_registers["P"].data = reset_vector[0];
+        auto reset = this->m_memory_controller->Cart_info()["RESET"].data;
+        this->cpu_registers["PC"].data = reset[1]<<8 | reset[0];
         this->cpu_registers["SP"].data = 0x000001FC;
     }
 
     std::thread CPU::run(){
         std::thread runtime([this](){
             while (true){
-                auto pc = this->cpu_registers["P"];
+                auto pc = this->cpu_registers["PC"];
                 printf("PC: %04X\n", pc.data);
                 auto current_instruction = this->m_memory_controller->VirtualMemory()[pc.data];
                 if (!this->instructions.contains(current_instruction)){
-                    printf("Instruction %02X not implemented!!!", current_instruction);
+                    printf("Instruction %02X not implemented!!!\n", current_instruction);
                     return 1;
                 }
                 auto instruction = this->instructions[current_instruction];
@@ -106,14 +134,12 @@ namespace cpu {
                 for (int x = 1; x<operandbytes;x++){
                     operands[x-1] = this->m_memory_controller->VirtualMemory()[pc.data+x];
                 }
-
-                bool success = instruction.callback();
-
-                this->cpu_registers["P"].data += operandbytes;
+                bool success = instruction.callback();  //todo: pass in operands here instead of getting them in the instructions callback
 
                 delete[] operands;
                 if (!success)
                     return 1;
+                //todo: handle clock cycles
             }
         });
         return runtime;

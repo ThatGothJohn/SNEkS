@@ -435,12 +435,13 @@ namespace memory {
         int rom_addr = 0;
         for(int64_t bank = 0x80; bank<0xFF; bank++){
             for (int64_t page_byte = 0x8000; page_byte < 0xFFFF; page_byte++){
-                this->m_virtual_memory[(bank<<0x10000) | page_byte] = this->game_cart[rom_addr++];//rom
-                this->m_virtual_memory[((bank-0x80)<<0x10000) | page_byte] = this->game_cart[rom_addr++];//horizontal mirror
+                this->m_virtual_memory[(bank<<0x10000) | page_byte] = this->game_cart[rom_addr];//rom
+                this->m_virtual_memory[((bank-0x80)<<0x10000) | page_byte] = this->game_cart[rom_addr];//horizontal mirror
                 if (bank >= 0xC0){ //vertical mirroring
-                    this->m_virtual_memory[(bank<<0x10000) | (page_byte-0x8000)] = this->game_cart[rom_addr++];//rom
-                    this->m_virtual_memory[((bank-0x80)<<0x10000) | (page_byte-0x8000)] = this->game_cart[rom_addr++];//horizontal mirror
+                    this->m_virtual_memory[(bank<<0x10000) | (page_byte-0x8000)] = this->game_cart[rom_addr];//rom
+                    this->m_virtual_memory[((bank-0x80)<<0x10000) | (page_byte-0x8000)] = this->game_cart[rom_addr];//horizontal mirror
                 }
+                rom_addr++;
             }
         }
 
@@ -454,9 +455,10 @@ namespace memory {
         int sram_addr = 0;
         for(int64_t bank = 0xF0; bank<0xFF; bank++){
             for (int64_t page_byte = 0x0000; page_byte < 0x8000; page_byte++){
-                this->m_virtual_memory[(bank<<0x10000) | page_byte] = this->game_cart[rom_addr++];//sram
-                this->m_virtual_memory[((bank-0x80)<<0x10000) | page_byte] = this->game_cart[rom_addr++];//horizontal mirror
+                this->m_virtual_memory[(bank<<0x10000) | page_byte] = this->game_cart[sram_addr];//sram
+                this->m_virtual_memory[((bank-0x80)<<0x10000) | page_byte] = this->game_cart[sram_addr];//horizontal mirror
                 //fixme: this doesn't mirror the sram to bank $FF but this is a temp hacky fix anyway
+                sram_addr++;
             }
         }
 

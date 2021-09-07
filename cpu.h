@@ -50,8 +50,17 @@ namespace cpu {
                 //Processor status holds a lot, see comment below, after the cpu_registers definition
                 {"P", {"P", "Processor Status", (char16_t) 0x0000}},
         };
-        //Processor status:
+        //Processor status:     00000000
+        //                      NVMXDIZC
         //
+        //N : $80 : Negative
+        //V : $40 : Overflow
+        //M : $20 : Accumulator register size (native mode only), (0 = 16-bit, 1 = 8-bit)
+        //X : $10 : Index register size (native mode only), (0 = 16-bit, 1 = 8-bit)
+        //D : $08 : Decimal
+        //I : $04 : IRQ disable
+        //Z : $02 : Zero
+        //C : $01 : Carry
 
         //instructions and friendly names from https://wiki.superfamicom.org/65816-reference
         std::map<char, instruction> instructions = {
@@ -79,13 +88,18 @@ namespace cpu {
                 {0x29, {"AND", "AND Accumulator with Memory (Immediate)", 2, 2, []{ printf("0x29 not implemented;\n"); return false; }}},
                 {0x2D, {"AND", "AND Accumulator with Memory (Absolute)", 3, 4, []{ printf("0x2D not implemented;\n"); return false; }}},
 
+                {0x80, {"BRA", "Branch Always", 2, 3, []{ printf("0x80 not implemented;\n"); return false; }}},
                 {0x50, {"BVC", "Branch if Overflow Clear", 2, 2, []{ printf("0x50 not implemented;\n"); return false; }}},
 
-                {0x7B, {"TDC", "Transfer Direct Page REgister to 16-bit accumulator", 1, 2, []{ printf("0x7B not implemented;\n"); return false; }}},
+                {0x7B, {"TDC", "Transfer Direct Page Register to 16-bit accumulator", 1, 2, []{ printf("0x7B not implemented;\n"); return false; }}},
 
+                {0x78, {"SEI", "Set Interrupt Disable Flag (Implied)", 1, 2, []{ printf("0x78 not implemented;\n"); return false; }}},
+
+                {0x9C, {"STZ", "Store Zero To Memory (Absolute)", 3, 4, []{ printf("0x9C not implemented;\n"); return false; }}},
         };
 
         long m_clock_rate = 21477270; //Hertz
+        short clocks; //how many clocks to use before next instruction
 
         void init_instructions();
 
