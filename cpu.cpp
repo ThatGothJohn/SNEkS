@@ -100,6 +100,7 @@ namespace cpu {
             this->cpu_registers["P"].data | 0x04; //set Interrupt disable Flag
             this->clocks = this->instructions[0x78].base_cycles;
             this->cpu_registers["PC"].data += this->instructions[0x78].bytes;
+            printf("Set Interrupt disable flag\n");
             return true;
         };
         this->instructions[0x80].callback = [this]{
@@ -123,9 +124,9 @@ namespace cpu {
             while (true){
                 auto pc = this->cpu_registers["PC"];
                 printf("PC: %04X\n", pc.data);
-                auto current_instruction = this->m_memory_controller->VirtualMemory()[pc.data];
+                auto current_instruction = this->m_memory_controller->get_byte(pc.data);
                 if (!this->instructions.contains(current_instruction)){
-                    printf("Instruction %02X not implemented!!!\n", current_instruction);
+                    printf("Instruction %02X not implemented!!!\tPC: $%06X\n", current_instruction, pc.data);
                     return 1;
                 }
                 auto instruction = this->instructions[current_instruction];

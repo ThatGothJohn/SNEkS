@@ -69,6 +69,8 @@ namespace memory {
         int m_data_bus_len = 1;
         char8_t *m_data_bus;
 
+        int m_map_mode;
+
         std::map<std::string, reg> m_registers;
         std::map<std::string, cart_data> m_cart_info;
 
@@ -81,15 +83,11 @@ namespace memory {
 
         void init_registers();
 
-        void init_ram();
-
         void init_A_bus();
 
         void init_B_bus();
 
         void init_data_bus();
-
-        void init_PPU_ram();
 
         void setup_virtual_memory();
 
@@ -107,13 +105,13 @@ namespace memory {
 
         void update_registers();
 
-        void LoRom();
+        char8_t* LoRom(int);
 
         void HiRom();
 
     public:
-        memoryController();
 
+        memoryController();
         ~memoryController();
 
         bool load_rom_into_virtual_memory(char*, long int);
@@ -149,6 +147,10 @@ namespace memory {
         std::pair<std::string, reg> Register_from_address (int addr);
 
         char8_t *game_cart;
+
+        char8_t get_byte(int addr);
+
+        char8_t* get_bytes(int addr);
 
     };
 }

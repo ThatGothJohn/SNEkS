@@ -394,75 +394,19 @@ namespace memory {
         //Todo: more mappers
         char map_mode = this->game_cart[this->m_cart_info["MAPMODE"].addr] & 0xEF;
         bool fast_rom = (this->game_cart[this->m_cart_info["MAPMODE"].addr] & 0x10) == 0x10;
-        switch (map_mode) { //map modes from https://en.wikibooks.org/wiki/Super_NES_Programming/SNES_memory_map#How_do_I_recognize_the_ROM_type
-            case 0x20:  //LoROM
-                LoRom();
-                break;
-//            case 0x21:
-//                HiRom();
-//                break;
-            default:
-                printf("Mapping mode: %02X not implemented!!!\n", map_mode);
-                return false;
-        }
+        this->m_map_mode = map_mode;
 
         return true;
     }
 
 //      :                  bank page byte
 //      VIRTUAL MEMORY SIZE: $FF FF FF
-    void memoryController::LoRom() {
+    char8_t* memoryController::LoRom(int addr) {
         int game_rom_size = 0x400 << this->game_cart[this->m_cart_info["ROMSIZE"].addr];
         int game_sram_size = 0x400 << this->game_cart[this->m_cart_info["RAMSIZE"].addr];
-        ;
-        //Load Rom
-//        for (int x = 0; x < game_rom_size; x++){
-//            int addr = (x % 0x8000) +0x808000;
-//            //printf("$%02X:%04X", (addr & 0xFF0000) / 0x10000, addr & 0xFFFF);
-//            int mirror_addr = (x % 0x8000) +0x8000;
-//
-//            this->m_virtual_memory[addr] = this->game_cart[x];
-//            this->m_virtual_memory[mirror_addr] = this->game_cart[x]; //"horizontal" mirror
-//
-//            if (x >= 0x4000) { //"vertical" mirror
-//                this->m_virtual_memory[addr - 0x8000] = this->game_cart[x];
-//                this->m_virtual_memory[mirror_addr - 0x8000] = this->game_cart[x];
-//            }
-//
-//        }
 
-        //temporary fixed LoRam code cause i can't math rn fixme: fix commented out math
-        int rom_addr = 0;
-        for(int64_t bank = 0x80; bank<0xFF; bank++){
-            for (int64_t page_byte = 0x8000; page_byte < 0xFFFF; page_byte++){
-                this->m_virtual_memory[(bank<<0x10000) | page_byte] = this->game_cart[rom_addr];//rom
-                this->m_virtual_memory[((bank-0x80)<<0x10000) | page_byte] = this->game_cart[rom_addr];//horizontal mirror
-                if (bank >= 0xC0){ //vertical mirroring
-                    this->m_virtual_memory[(bank<<0x10000) | (page_byte-0x8000)] = this->game_cart[rom_addr];//rom
-                    this->m_virtual_memory[((bank-0x80)<<0x10000) | (page_byte-0x8000)] = this->game_cart[rom_addr];//horizontal mirror
-                }
-                rom_addr++;
-            }
-        }
-
-
-        //Load SRAM
-//        for (int x = 0; x < game_sram_size; x++){
-//            int addr = (x % 0x8000) +0xF00000;
-//            this->m_virtual_memory[addr] = this->game_cart[game_sram_size+x]; //todo: sram mirroring
-//        }
-        //temporary fixed LoRam code cause i can't math rn fixme: fix commented out math
-        int sram_addr = 0;
-        for(int64_t bank = 0xF0; bank<0xFF; bank++){
-            for (int64_t page_byte = 0x0000; page_byte < 0x8000; page_byte++){
-                this->m_virtual_memory[(bank<<0x10000) | page_byte] = this->game_cart[sram_addr];//sram
-                this->m_virtual_memory[((bank-0x80)<<0x10000) | page_byte] = this->game_cart[sram_addr];//horizontal mirror
-                //fixme: this doesn't mirror the sram to bank $FF but this is a temp hacky fix anyway
-                sram_addr++;
-            }
-        }
-
-
+        printf("AAAAAAHHHHHHHH\n\n");
+        throw;
     }
     void memoryController::HiRom() {
         int game_rom_size = 0x400 << this->game_cart[this->m_cart_info["ROMSIZE"].addr];
@@ -470,5 +414,24 @@ namespace memory {
 
         //todo: HiRom
 
+    }
+
+    char8_t memoryController::get_byte(int addr) {  //NOTE(ALL): rather than try to map everything to a large virtual memory, use these functions
+
+        switch (this->m_map_mode) { //map modes from https://en.wikibooks.org/wiki/Super_NES_Programming/SNES_memory_map#How_do_I_recognize_the_ROM_type
+            case 0x20:  //LoROM
+                return this->LoRom(addr)[0];
+//            case 0x21:
+//                HiRom();
+//                break;
+            default:
+                printf("Mapping mode: %02X not implemented!!!\n", this->m_map_mode);
+                throw;
+        }
+
+    }
+
+    char8_t *memoryController::get_bytes(int addr) {
+        return nullptr;
     }
 }
